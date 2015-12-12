@@ -18,4 +18,5 @@ class Client {
         void reciveFromServ(bool &isSend);
         bool sendToServ();
         void saveToResult(string addStr);
+        string returnRsltHtml();
 };

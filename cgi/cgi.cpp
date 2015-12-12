@@ -22,7 +22,7 @@ void decodeEnv(string sourceString, vector<string>& vDest) {
 }
 
 int main() {
-    int clieFd[MAXUSER];
+    int clieFd[MAXUSER] = {-1, -1, -1, -1, -1};
     struct hostent *host[MAXUSER];
     int hostPort[MAXUSER];
     struct sockaddr_in serv_sin[MAXUSER];
@@ -30,7 +30,7 @@ int main() {
     fd_set afds;
 
 
-
+    setenv("QUERY_STRING", "h1=127.0.0.1&p1=12345&f1=t1.txt", 1);
     string queryString(getenv("QUERY_STRING"));
 
     vector<string> vDecodeEnv;
@@ -48,8 +48,8 @@ int main() {
             continue;
         }
         string serverIP = vDecodeEnv[i].substr(vDecodeEnv[i].find_first_of('=') + 1);
-        string serverPort = vDecodeEnv[i].substr(vDecodeEnv[i + 1].find_first_of('=') + 1);
-        string serverFile = vDecodeEnv[i].substr(vDecodeEnv[i + 2].find_first_of('=') + 1);
+        string serverPort = vDecodeEnv[i + 1].substr(vDecodeEnv[i + 1].find_first_of('=') + 1);
+        string serverFile = vDecodeEnv[i + 2].substr(vDecodeEnv[i + 2].find_first_of('=') + 1);
         clieFd[num] = socket(AF_INET, SOCK_STREAM, 0);
         host[num] = gethostbyname(serverIP.c_str());
         hostPort[num] = atoi(serverPort.c_str());
@@ -87,6 +87,7 @@ int main() {
         else
             cout << "<td valign=\"top\" id =\"m" << i << "\"></td>";
     }
+    cout << "</tr></table>" << endl;
 
     FD_ZERO(&rfds);
     FD_ZERO(&afds);
@@ -126,7 +127,7 @@ int main() {
             if (FD_ISSET(clieFd[i], &rfds)) {
                 // recive 到 % 号说明可以向serv 发送指令了，isSend = ture
                 pClient[i].reciveFromServ(isSend[i]);
-                cout << pClient[i].resultHtml << endl;
+                cout << pClient[i].returnRsltHtml() << endl;
             }
 
             if (isSend[i]) {
@@ -155,7 +156,7 @@ int main() {
     }
 finished:
     cout << "</font>"
-        << "</bodu>"
+        << "</body>"
         << "</html>" << endl;
     delete[] pClient;
     return 0;
