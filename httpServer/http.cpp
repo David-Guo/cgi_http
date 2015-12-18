@@ -8,6 +8,8 @@
 #include <errno.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string>
+#include <sstream>
 
 int HttpServer::passivesock(int port) {
     struct protoent *ppe;
@@ -37,7 +39,106 @@ int HttpServer::passivesock(int port) {
     return msock;
 }
 
+
 void HttpServer::error(const char *eroMsg) {
     cerr << eroMsg << ":" << strerror(errno) << endl;
     exit(1);
+}
+
+
+void HttpServer::boost(int port) {
+    struct sockaddr_in client_addr;
+    socklen_t alen;
+    alen = sizeof(client_addr);
+
+    m_sock = passivesock(port);
+
+    while(1) {
+        int newsockfd = accept(m_sock, (struct sockaddr *) &client_addr, &alen);
+        if (newsockfd < 0) {
+            close(newsockfd);
+            continue;
+        }
+
+        int childpid = fork();
+        if (childpid  < 0)
+            cerr << "fork failed" << endl;
+        else if (childpid == 0) {
+            // child process
+            handleRequest(newsockfd);
+            
+            if(m_sock) close(m_sock);
+            exit(0);
+        }
+        else {
+            // parent process
+            // do nothing
+            close(newsockfd);
+        }
+    }
+}
+
+
+void HttpServer::handleRequest(int sockfd) {
+    int tmpStdin = dup(0);
+    int tmpStdout = dup(1);
+    dup2(sockfd, 0);
+    dup2(sockfd, 1);
+
+    char buff[1024];
+
+    // 处理请求
+    string recvMsg;
+    string queryString;
+    if (recv(sockfd, buff, 1023, 0) > 0) {
+        recvMsg = string(buff);
+        stringstream ss(recvMsg);
+        string requestLine;
+        string methodUrl;
+        string offset;
+        // 直接在浏览器查看recvMsg cout << recvMsg << endl;
+        // 直接在终端查看recvMsg cerr << recvMsg << endl;
+        
+        // 取出请求行
+        getline(ss, requestLine, '\n');
+        // cout << requestLine << endl;
+        stringstream ssRqstLine(requestLine);
+
+        getline(ssRqstLine, offset, '/');
+        if (requestLine.find(".cgi") != string::npos) {
+            //getline(sss, methodUrl, '?');
+            //getline(sss, queryString, ' ');
+            //cout << methodUrl << endl;
+            //cerr << queryString << endl;
+        }
+
+        // 响应信息
+        if (requestLine.find(".cgi") != string::npos) {
+            // 切换工作目录
+            if (chdir("./cgi") != 0) 
+                error("Change working directory failed");
+
+            setenv("QUERY_STRING", queryString.c_str(), 1);
+            int status = execvp(requestDoc, NULL);
+            if (status == -1)
+                cerr << "execvp cgi failed" << endl;
+        }
+        else { //if (requestLine.find(".htm") != string::npos) {
+            // html 响应
+            string htmlPage = string("<!DOCTYPE html>");
+            htmlPage += "<html><head>404 Not Found : Invalid web page requested.</head><body></body></html>";
+        }    
+
+
+
+    }
+    else {
+        cerr << "recv form sockfd failed" << endl;
+        dup2(tmpStdin, 0);
+        dup2(tmpStdout, 1);
+        close(tmpStdin);
+        close(tmpStdout);
+        return;
+    }
+
 }

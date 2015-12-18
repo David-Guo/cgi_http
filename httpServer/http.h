@@ -8,4 +8,8 @@ class HttpServer {
         void boost(int port);
         int passivesock(int port);
         void error(const char *eroMsg);
+        void handleRequest(int sockfd);
+
+    private:
+        int m_sock;
 };
