@@ -87,14 +87,14 @@ void HttpServer::handleRequest(int sockfd) {
 
     char buff[1024];
 
-    // 处理请求
+    // 解析协议 得到querystring 环境变量跟执行程序名
     string recvMsg;
     string queryString;
+    string requestDoc;
     if (recv(sockfd, buff, 1023, 0) > 0) {
         recvMsg = string(buff);
         stringstream ss(recvMsg);
         string requestLine;
-        string methodUrl;
         string offset;
         // 直接在浏览器查看recvMsg cout << recvMsg << endl;
         // 直接在终端查看recvMsg cerr << recvMsg << endl;
@@ -104,24 +104,32 @@ void HttpServer::handleRequest(int sockfd) {
         // cout << requestLine << endl;
         stringstream ssRqstLine(requestLine);
 
-        getline(ssRqstLine, offset, '/');
         if (requestLine.find(".cgi") != string::npos) {
-            //getline(sss, methodUrl, '?');
-            //getline(sss, queryString, ' ');
-            //cout << methodUrl << endl;
-            //cerr << queryString << endl;
+            getline(ssRqstLine, offset, '/');
+            getline(ssRqstLine, offset, '?');
+            requestDoc = offset;
+            getline(ssRqstLine, offset, ' ');
+            queryString = offset;
+            cerr << "requestDoc: " << requestDoc << endl;
+            cerr << "queryString: " << queryString << endl;
+            
         }
 
         // 响应信息
         if (requestLine.find(".cgi") != string::npos) {
             // 切换工作目录
-            if (chdir("./cgi") != 0) 
+            if (chdir("../cgi/") != 0) 
                 error("Change working directory failed");
 
             setenv("QUERY_STRING", queryString.c_str(), 1);
-            int status = execvp(requestDoc, NULL);
+            char **arg =NULL;
+            int status = execvp("hello.cgi", arg);
             if (status == -1)
-                cerr << "execvp cgi failed" << endl;
+                cerr << "error" << endl;
+                //error("execvp cgi failed");
+            status = execvp("ls", 0);
+            if (status == -1)
+                error("execvp cgi failed");
         }
         else { //if (requestLine.find(".htm") != string::npos) {
             // html 响应
