@@ -96,12 +96,13 @@ int main() {
     for (int i = 0; i < MAXUSER; i++) {
         if (clieFd[i] != -1) {
             int flags;
+            // 设置 sockfd 为 nonblock
             if ((flags = fcntl(clieFd[i], F_GETFL, 0)) == -1)
                 flags = 0;
             fcntl(clieFd[i], F_SETFL, flags | O_NONBLOCK);
 
             if (clieFd[i] > maxFd) maxFd = clieFd[i];
-
+            // 与ras 服务建立 socket 链接
             while(1) {
                 if (connect(clieFd[i], (struct sockaddr *)&serv_sin[i], sizeof(serv_sin[i])) == -1) 
                     ;
@@ -132,12 +133,12 @@ int main() {
 
             if (isSend[i]) {
                 bool isExit = pClient[i].sendToServ() == false;
-
+                sleep(1);
                 if (isExit) {
                     sleep(4);
                     pClient[i].reciveFromServ(isSend[i]);
                     cout << pClient[i].resultHtml << endl;
-                    
+
                     // close sockfd，将不会再被select
                     close(clieFd[i]);
                     FD_CLR(clieFd[i], &afds);
@@ -145,13 +146,13 @@ int main() {
                 }
             }
         }
-    bool isFinish = true;
-    for (int i = 0; i < MAXUSER; i++)
-        if (clieFd[i] != -1) {
-            isFinish = false;
-            break;
-        }
-    if (isFinish) goto finished;
+        bool isFinish = true;
+        for (int i = 0; i < MAXUSER; i++)
+            if (clieFd[i] != -1) {
+                isFinish = false;
+                break;
+            }
+        if (isFinish) goto finished;
 
     }
 finished:

@@ -8,9 +8,9 @@
 
 std::string substitute(std::string str, const std::string& src, const std::string& dest) {
     size_t start = 0;
-    while ((start = str.find(src, start) != std::string::npos)) {
+    while ((start = str.find(src, start)) != std::string::npos) {
         str.replace(start, src.length(), dest);
-        start += src.length();
+        start += dest.length();
     }
     return str;
 }
@@ -58,14 +58,15 @@ void Client::reciveFromServ(bool &isSend) {
 
         // 以换行为分隔符
         while (getline(ss, tempStr, '\n')) {
-            tempStr = substitute(tempStr, "\"", "&quot");
-            tempStr = substitute(tempStr, ">", "&qt");
+            //tempStr = substitute(tempStr, "\"", "&quot");
+            tempStr = substitute(tempStr, ">", "&gt");
             tempStr = substitute(tempStr, "<", "&lt");
             tempStr = substitute(tempStr, "%", "");
             tempStr = substitute(tempStr, "\r", "");
             tempStr = substitute(tempStr, "\n", "");
 
             if (tempStr != " ") {
+                // 使用 javascript 打包好输出内容
                 saveToResult(tempStr);
             }
         }
