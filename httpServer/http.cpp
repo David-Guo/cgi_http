@@ -116,25 +116,25 @@ void HttpServer::handleRequest(int sockfd) {
         }
 
         // 响应信息
+        cout << "HTTP/1.1 200 OK\r\n";
+        cout << "response head\r\n";
+        cout << "\r\n";
         if (requestLine.find(".cgi") != string::npos) {
             // 切换工作目录
-            if (chdir("../cgi/") != 0) 
+            if (chdir("..") != 0) 
                 error("Change working directory failed");
 
+            // 改变环境变量！
+            setenv("PATH", "./cgi:.", 1);
             setenv("QUERY_STRING", queryString.c_str(), 1);
-            char **arg =NULL;
-            int status = execvp("hello.cgi", arg);
-            if (status == -1)
-                cerr << "error" << endl;
-                //error("execvp cgi failed");
-            status = execvp("ls", 0);
+            int status = execvp(requestDoc.c_str(), NULL);
             if (status == -1)
                 error("execvp cgi failed");
         }
-        else { //if (requestLine.find(".htm") != string::npos) {
+        else { //if (requestline.find(".htm") != string::npos) {
             // html 响应
-            string htmlPage = string("<!DOCTYPE html>");
-            htmlPage += "<html><head>404 Not Found : Invalid web page requested.</head><body></body></html>";
+            string htmlpage = string("<!doctype html>");
+            htmlpage += "<html><head>404 not found : invalid web page requested.</head><body></body></html>";
         }    
 
 
