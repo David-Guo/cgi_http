@@ -30,7 +30,8 @@ int main() {
     fd_set afds;
 
 
-    setenv("QUERY_STRING", "h1=127.0.0.1&p1=12345&f1=t1.txt&h2=127.0.0.1&p2=12345&f2=t2.txt", 1);
+    //setenv("QUERY_STRING", "h1=127.0.0.1&p1=12345&f1=t1.txt&h2=127.0.0.1&p2=12345&f2=t2.txt", 1);
+    //setenv("QUERY_STRING", "h1=nplinux4.cs.nctu.edu.tw&p1=12345&f1=t5.txt&h2=nplinux4.cs.nctu.edu.tw&p2=12345&f2=t4.txt", 1);
     string queryString(getenv("QUERY_STRING"));
 
     vector<string> vDecodeEnv;

@@ -34,6 +34,8 @@ void Client::init(string ip, string port, string file, int id) {
     taskId = id;
     inputFile = file;
     batFile.open(inputFile.c_str(), ios::in);
+    if (!batFile) 
+        cerr << "can't find file :" << inputFile << endl;
 }
 
 

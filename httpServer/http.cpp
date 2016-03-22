@@ -128,8 +128,10 @@ void HttpServer::handleRequest(int sockfd) {
             setenv("PATH", "./cgi:.", 1);
             setenv("QUERY_STRING", queryString.c_str(), 1);
             int status = execvp(requestDoc.c_str(), NULL);
-            if (status == -1)
+            if (status == -1) {
+                cerr << "PATH: " << getenv("PATH") << endl;
                 error("execvp cgi failed");
+            }
         }
         else { //if (requestline.find(".htm") != string::npos) {
             // html 响应
